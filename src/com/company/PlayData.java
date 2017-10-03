@@ -1,40 +1,40 @@
 package com.company;
 
 public class PlayData {
-    private static String playId;
-    private static String sceneId;
-    private static Long sceneNum;
-    private static String text;
+    private  String playId;
+    private  String sceneId;
+    private  Long sceneNum;
+    private  String text;
 
-    public static String getPlayId() {
-        return playId;
+    public String getPlayId() {
+        return this.playId;
     }
 
-    public static void setPlayId(String playId) {
-        PlayData.playId = playId;
+    public  void setPlayId(String playId) {
+        this.playId = playId;
     }
 
-    public static String getSceneId() {
-        return sceneId;
+    public  String getSceneId() {
+        return this.sceneId;
     }
 
-    public static void setSceneId(String sceneId) {
-        PlayData.sceneId = sceneId;
+    public void setSceneId(String sceneId) {
+        this.sceneId = sceneId;
     }
 
-    public static Long getSceneNum() {
-        return sceneNum;
+    public  Long getSceneNum() {
+        return this.sceneNum;
     }
 
-    public static void setSceneNum(Long sceneNum) {
-        PlayData.sceneNum = sceneNum;
+    public  void setSceneNum(Long sceneNum) {
+        this.sceneNum = sceneNum;
     }
 
-    public static String getText() {
-        return text;
+    public  String getText() {
+        return this.text;
     }
 
-    public static void setText(String text) {
-        PlayData.text = text;
+    public  void setText(String text) {
+        this.text = text;
     }
 }

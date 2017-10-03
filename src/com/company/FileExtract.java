@@ -42,12 +42,11 @@ public class FileExtract {
     /* Function to parse json file from outdata_path and store
             return an ArrayList of JSON Objects.
      */
-//    ArrayList<JSONObject> jsonObj = new ArrayList<JSONObject>();
-        ArrayList<PlayData> playObj = new ArrayList<PlayData>();
-        PlayData pObj = new PlayData();
 
-        JSONObject obj = new JSONObject();
-        String line = null;
+        ArrayList<PlayData> playObj = new ArrayList<PlayData>();
+
+        JSONObject obj;
+
         try{
             FileReader fileReader = new FileReader(outdata_path);
 //
@@ -57,18 +56,19 @@ public class FileExtract {
 //        System.out.println("JSON Array : "+jArray);
             for(int i = 0;i<jArray.size();i++){
                 obj = (JSONObject) jArray.get(i);
-
+                PlayData pObj = new PlayData();
                 pObj.setPlayId((String) obj.get("playId"));
                 pObj.setSceneId((String) obj.get("sceneId"));
                 pObj.setSceneNum((Long) obj.get("sceneNum"));
                 pObj.setText((String) obj.get("text"));
 
-                playObj.add(pObj);
+//                System.out.println(pObj.getText());
+                if(!playObj.add(pObj)) System.out.println("Error in Adding object");
+//                System.out.println(playObj.get(i).getText());
 
             }
-            System.out.println("JSON file parsing succesful with size : "+playObj.size());
 
-
+            System.out.println("JSON file parsing successful with size : "+playObj.size());
 
 
         }catch(FileNotFoundException e){
