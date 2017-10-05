@@ -1,14 +1,28 @@
 package com.company;
-import org.json.simple.JSONObject;
 
 
+
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Main {
 
     public static void main(String[] args) {
+
+        /* Parse input for compressed option :
+         "c"   -> Compressed
+         default -> Uncompressed
+         */
+
+        boolean isCompressed = false;
+
+        if(args.length != 0 && (args[0].equals("c") || args[0].equals("C")))
+            isCompressed = true;
+
+
 	    /* Extract the gz file to json. This will be commented for now
 	     * since the extraction is already done */
+
         FileExtract fExtract = new FileExtract();
 //        fExtract.gunzipIt();
 
@@ -21,7 +35,7 @@ public class Main {
 
         ExtractIndexTerms indexPostings = new ExtractIndexTerms();
         indexPostings.extractTerms(allScenes);
-        // Test the postings
+
         System.out.println("(Main)Add/update postings successful with size: "+ indexPostings.getPostings().size());
 
         /* Create Inverted Index converting the ArrayList<Posting> into a single <String, ArrayList<Integer>>
@@ -29,13 +43,23 @@ public class Main {
          */
 
         InvertedIndex invIndices = new InvertedIndex();
-        invIndices.createInvIndex(indexPostings.getPostings());
+        if(!isCompressed)
+            invIndices.createInvIndex(indexPostings.getPostings());
+        else
+            invIndices.createInvIndexCompressed(indexPostings.getPostings());
 
         System.out.println("(Main) Creation of Inverted Index Successful with size : " + invIndices.getInvIndex().size());
-        System.out.println(invIndices.getInvIndex().get("the"));
 
+        /* Write Inverted Index and other ancillary data structures to disk */
+        DiskWriter diskWriter = new DiskWriter(isCompressed);
+        try {
+            if(!isCompressed)
+                diskWriter.writeInvIndexToFile(invIndices);
+            else
+                diskWriter.writeCompressedInvIndexToFile(invIndices);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
 
-
-
-    }
+    } /* End Of Main() */
 }
