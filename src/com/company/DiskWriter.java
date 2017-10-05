@@ -163,4 +163,6 @@ private static HashMap<String, PostingListDisk> lookUpTable;  /*Maps index Terms
     }
 
 
+
+
 }

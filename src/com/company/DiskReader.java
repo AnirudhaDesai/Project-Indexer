@@ -34,6 +34,8 @@ public class DiskReader {
             e.printStackTrace();
         }
 
+        readLookUpTable();
+
     }
     /* Overloaded Constructor to read if using Compressed Index */
     public DiskReader (boolean isCompressed) throws IOException {
@@ -51,6 +53,8 @@ public class DiskReader {
 
 //            readCompressedInvListFromDisk();
         }
+
+        readLookUpTable();
     }
 
     public void readInvListFromDisk() throws IOException{
@@ -144,7 +148,38 @@ public class DiskReader {
         }
     }
 
+    public ArrayList<Integer> getInvertedListForTerm(String term) throws IOException{
 
+        ArrayList<Integer> termInvertedList = new ArrayList<>();
+
+        PostingListDisk pObject = this.RetrievedLookUpTable.get(term);
+        if(pObject == null){
+            System.err.println("Term Not found in File!");
+            System.exit(1);
+        }
+
+        byte[] byteList = new byte[pObject.getLen()];
+        reader.seek(pObject.getOffset());
+        reader.read(byteList,0,pObject.getLen());
+        IntBuffer buffer = ByteBuffer.wrap(byteList).asIntBuffer();
+            /* Write inverted List from buffer*/
+        while(buffer.hasRemaining()){
+            termInvertedList.add(buffer.get());
+        }
+
+        return termInvertedList;
+
+    }
+
+    public PostingListDisk getPostingListDiskObjectForTerm(String term) throws IOException {
+        PostingListDisk pObject = this.RetrievedLookUpTable.get(term);
+        if(pObject == null){
+            System.err.println("Term Not found in File!");
+            System.exit(1);
+        }
+
+        return pObject;
+    }
 
     public String getPath() {
         return path;
