@@ -67,7 +67,7 @@ private static HashMap<String, PostingListDisk> lookUpTable;  /*Maps index Terms
             object.setDocFrequency(df);
             object.setLen(byteLength);
             totalBytes += byteLength;
-            System.out.println("Uncompressed Size: " + byteLength);
+//            System.out.println("Uncompressed Size: " + byteLength);
 
             lookUpTable.put(word,object);
             }
@@ -75,6 +75,7 @@ private static HashMap<String, PostingListDisk> lookUpTable;  /*Maps index Terms
         InvertedList.close();
         /* Write LookUpTable to disk */
         writeLookUpToDisk(false);
+
 
     }
 
@@ -115,7 +116,7 @@ private static HashMap<String, PostingListDisk> lookUpTable;  /*Maps index Terms
             object.setDocFrequency(df);
             object.setLen(byteLength);
             totalBytes += byteLength;
-            System.out.println("Compressed Size: " + byteLength);
+//            System.out.println("Compressed Size: " + byteLength);
 
             lookUpTable.put(word, object);
 
@@ -131,6 +132,7 @@ private static HashMap<String, PostingListDisk> lookUpTable;  /*Maps index Terms
 
         InvertedListCompressed.close();
         writeLookUpToDisk(true);
+
         }
     private void writeLookUpToDisk(boolean isCompressed){
         ObjectMapper mapper = new ObjectMapper();
@@ -148,6 +150,8 @@ private static HashMap<String, PostingListDisk> lookUpTable;  /*Maps index Terms
 
     }
 
+
+
     private void encode ( ArrayList<Integer> input, ByteBuffer output) {
         for (int i : input ) {
             while ( i >= 128 ) {
@@ -157,18 +161,6 @@ private static HashMap<String, PostingListDisk> lookUpTable;  /*Maps index Terms
             output.put((byte) (i | 0x80) );
         }
     }
-    public void decode ( byte [] input, ArrayList<Integer> output ) {
-        for ( int i = 0; i < input.length; i++ ) {
-            int position = 0;
-            int result = ((int) input[i] & 0x7F);
-            while ( ((input[i]) & 0x80) == 0 ) {
-                i += 1;
-                position += 1;
-                int unsignedByte = ((int) input[i] & 0x7F);
-                result |= (unsignedByte << (7 * position));
-            }
-            output.add(result);
-        }
-    }
+
 
 }

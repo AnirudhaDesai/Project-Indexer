@@ -6,6 +6,13 @@ public class PlayData {
     private  Long sceneNum;
     private  String text;
 
+    public PlayData() {
+    }
+
+    public PlayData(String playId) {
+        this.playId = playId;
+    }
+
     public String getPlayId() {
         return this.playId;
     }

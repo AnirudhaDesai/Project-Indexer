@@ -61,5 +61,20 @@ public class Main {
             e.printStackTrace();
         }
 
+        /* All the maps, InvertedList are now written to disk */
+        /* Test Retrieval Code */
+//        try {
+//            /* At object instantiate, constructor, reads all maps,
+//            builds inverted list from file.
+//           */
+//            DiskReader diskReader = new DiskReader(isCompressed);
+//            System.out.println(diskReader.getRetrievedlookUpTable().size());
+//        }catch (IOException e){
+//            e.printStackTrace();
+//        }
+
+
+
+
     } /* End Of Main() */
 }
