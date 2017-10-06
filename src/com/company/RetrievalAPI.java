@@ -9,20 +9,33 @@ public class RetrievalAPI {
     private ArrayList<String> vocabulary;
     private boolean isCompressed;
 
-    public boolean isCompressed() {
-        return isCompressed;
+    private float AverageLengthOfScenes;
+    private String ShortestScene;
+    private String LongestPlay;
+    private String ShortestPlay;
+
+    public String getLongestPlay() {
+        return LongestPlay;
     }
 
-    public void setCompressed(boolean compressed) {
-        isCompressed = compressed;
+    public void setLongestPlay(String longestPlay) {
+        LongestPlay = longestPlay;
     }
 
-    public ArrayList<String> getVocabulary() {
-        return vocabulary;
+    public String getShortestPlay() {
+        return ShortestPlay;
     }
 
-    public void setVocabulary(ArrayList<String> vocabulary) {
-        this.vocabulary = vocabulary;
+    public void setShortestPlay(String shortestPlay) {
+        ShortestPlay = shortestPlay;
+    }
+
+    public String getShortestScene() {
+        return ShortestScene;
+    }
+
+    public void setShortestScene(String shortestScene) {
+        ShortestScene = shortestScene;
     }
 
     public RetrievalAPI() {
@@ -31,6 +44,7 @@ public class RetrievalAPI {
         retrievalResults = new ArrayList<>();
         this.setCompressed(false);
         buildVocabulary();
+        calcAllStats();
     }
     /* Overloaded Constructor for compressed case*/
     public RetrievalAPI(boolean isCompressed) throws IOException{
@@ -39,6 +53,7 @@ public class RetrievalAPI {
         retrievalResults = new ArrayList<>();
         this.setCompressed(isCompressed);
         buildVocabulary();
+        calcAllStats();
     }
     private void buildVocabulary(){
         for(HashMap.Entry<String, PostingListDisk> pair : diskReader.getRetrievedlookUpTable().entrySet()){
@@ -121,4 +136,88 @@ public class RetrievalAPI {
         }
         return fullQuery.toString().trim();
     }
+
+    private void calcAllStats(){
+        calculateSceneStats();
+        calculatePlayStats();
+
+    }
+    private void calculatePlayStats(){
+        String holdPlayId = getPlayFromMetaData(diskReader.getRetrievedDocToSceneIdPlayIdMap().get(1));
+        int playLength = 0;
+        int minPlayLength = Integer.MAX_VALUE;
+        int maxPlayLength = Integer.MIN_VALUE;
+        for(HashMap.Entry<Integer, String> pair : diskReader.getRetrievedDocToSceneIdPlayIdMap().entrySet()) {
+            String playId = getPlayFromMetaData(pair.getValue());
+            int docNum = pair.getKey();
+
+            if(!playId.equals(holdPlayId)){
+                if(minPlayLength > playLength){
+                    minPlayLength = playLength;
+                    setShortestPlay(holdPlayId);
+                }
+                if(maxPlayLength<playLength){
+                    maxPlayLength = playLength;
+                    setLongestPlay(holdPlayId);
+                }
+                playLength = 0;
+                holdPlayId = playId;
+            }
+            playLength += diskReader.getRetrievedDocToLengthMap().get(docNum);
+        }
+
+        System.out.println("Longest Play : "+getLongestPlay());
+        System.out.println("Shortest Play : "+getShortestPlay());
+    }
+    private String getPlayFromMetaData(String metaData){
+        String[] hold = metaData.split("\\$");
+        return hold[1];
+    }
+
+    private void calculateSceneStats(){
+        int totalLength = 0;
+        int numScenes = 0;
+        float averageSceneLength = 0;
+        int minSceneLength = Integer.MAX_VALUE;
+        for(HashMap.Entry<Integer, Integer> pair : diskReader.getRetrievedDocToLengthMap().entrySet()){
+            totalLength += pair.getValue();
+            numScenes += 1;
+            if(minSceneLength>pair.getValue()){
+                this.setShortestScene(diskReader.getRetrievedDocToSceneIdMap().get(pair.getKey()));
+                minSceneLength = pair.getValue();
+            }
+        }
+        averageSceneLength = (float) totalLength / (float) numScenes;
+        this.setAverageLengthOfScenes(averageSceneLength);
+        System.out.println("Average Scene Length : "+averageSceneLength);
+        System.out.println("Shortest Scene : "+this.getShortestScene());
+
+    }
+
+    public float getAverageLengthOfScenes() {
+        return AverageLengthOfScenes;
+    }
+
+    public void setAverageLengthOfScenes(float averageLengthOfScenes) {
+        AverageLengthOfScenes = averageLengthOfScenes;
+    }
+
+    public boolean isCompressed() {
+        return isCompressed;
+    }
+
+    public void setCompressed(boolean compressed) {
+        isCompressed = compressed;
+    }
+
+    public ArrayList<String> getVocabulary() {
+        return vocabulary;
+    }
+
+    public void setVocabulary(ArrayList<String> vocabulary) {
+        this.vocabulary = vocabulary;
+    }
+
+
+
 }

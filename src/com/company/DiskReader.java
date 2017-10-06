@@ -18,9 +18,27 @@ public class DiskReader {
     private static HashMap<String, ArrayList<Integer>> RetrievedInvList;
     private static HashMap<Integer, Long> RetrievedDocToSceneMap;
     private static HashMap<Integer, String> RetrievedDocToSceneIdMap;
+    private static HashMap<Integer, String> RetrievedDocToSceneIdPlayIdMap;
     private static HashMap<String, Integer> RetrievedSceneIdToDocMap;
     private static HashMap<Integer, String[]> RetrievedDocToTermsMap;
     private static HashMap<Integer, Integer> RetrievedDocToLengthMap;
+
+    public static HashMap<Integer, String[]> getRetrievedDocToTermsMap() {
+        return RetrievedDocToTermsMap;
+    }
+
+    public static void setRetrievedDocToTermsMap(HashMap<Integer, String[]> retrievedDocToTermsMap) {
+        RetrievedDocToTermsMap = retrievedDocToTermsMap;
+    }
+
+    public static HashMap<Integer, Integer> getRetrievedDocToLengthMap() {
+        return RetrievedDocToLengthMap;
+    }
+
+    public static void setRetrievedDocToLengthMap(HashMap<Integer, Integer> retrievedDocToLengthMap) {
+        RetrievedDocToLengthMap = retrievedDocToLengthMap;
+    }
+
     RandomAccessFile reader;
     private boolean isCompressed;
 
@@ -29,6 +47,7 @@ public class DiskReader {
         RetrievedLookUpTable = new HashMap<>();
         RetrievedInvList = new HashMap<>();
         RetrievedDocToSceneIdMap = new HashMap<>();
+        RetrievedDocToSceneIdPlayIdMap = new HashMap<>();
         RetrievedDocToSceneMap = new HashMap<>();
         RetrievedSceneIdToDocMap = new HashMap<>();
         RetrievedDocToTermsMap = new HashMap<>();
@@ -61,6 +80,7 @@ public class DiskReader {
         RetrievedLookUpTable = new HashMap<>();
         RetrievedInvList = new HashMap<>();
         RetrievedDocToSceneIdMap = new HashMap<>();
+        RetrievedDocToSceneIdPlayIdMap = new HashMap<>();
         RetrievedDocToSceneMap = new HashMap<>();
         RetrievedSceneIdToDocMap = new HashMap<>();
         RetrievedDocToTermsMap = new HashMap<>();
@@ -185,8 +205,19 @@ public class DiskReader {
             RetrievedDocToLengthMap = (mapper.readValue(new File(path + "docIdToLengthMap.json"),
                 new TypeReference<HashMap<Integer, Integer>>() {
                 }));
+            RetrievedDocToSceneIdPlayIdMap = (mapper.readValue(new File(path + "docToSceneIdPlayIdMap.json"),
+                new TypeReference<HashMap<Integer, String>>() {
+                }));
     }
 
+
+    public static HashMap<Integer, String> getRetrievedDocToSceneIdPlayIdMap() {
+        return RetrievedDocToSceneIdPlayIdMap;
+    }
+
+    public static void setRetrievedDocToSceneIdPlayIdMap(HashMap<Integer, String> retrievedDocToSceneIdPlayIdMap) {
+        RetrievedDocToSceneIdPlayIdMap = retrievedDocToSceneIdPlayIdMap;
+    }
 
     public void readLookUpTable(){
         ObjectMapper mapper = new ObjectMapper();

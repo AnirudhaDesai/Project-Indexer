@@ -14,7 +14,7 @@ public class ExtractIndexTerms {
     private static HashMap<Integer, Long> docToSceneMap;
     private static HashMap<Integer, String> docToSceneIdMap;
     private static HashMap<String, Integer> sceneIdToDocMap;
-    private static HashMap<String, String>  docToSceneIdPlayIdMap;
+    private static HashMap<Integer, String>  docToSceneIdPlayIdMap;
     private static HashMap<String, ArrayList<Integer>> playIdToDocMap;
     private static HashMap<Integer, Integer> docIdToLengthMap;
     private static HashMap<Integer, String[]> docToTermsMap;
@@ -102,11 +102,13 @@ public class ExtractIndexTerms {
 //            System.out.println(words.length);
             for(int j = 0; j<words.length; j++){
                 if(!postings.containsKey(words[j])){
-                    addNewPosting(words[j], obj.get(i).getSceneId(), obj.get(i).getSceneNum(), documentId, j);
+                    addNewPosting(words[j], obj.get(i).getSceneId(), obj.get(i).getSceneNum(),
+                            documentId, j, obj.get(i).getPlayId());
                 }
                 else{
                     // term already exists. Update posting
-                    updatePosting(words[j], obj.get(i).getSceneId(), obj.get(i).getSceneNum(), documentId, j);
+                    updatePosting(words[j], obj.get(i).getSceneId(), obj.get(i).getSceneNum(),
+                            documentId, j, obj.get(i).getPlayId());
                 }
                 docTerms.add(words[j]);
                 /* Add this term to the Doc to Terms Map - Will be used for Retrieval */
@@ -131,7 +133,7 @@ public class ExtractIndexTerms {
         writeMapsToDisk();
 
     }
-    public void addNewPosting(String word, String sceneId, Long sceneNum, Integer DocId, Integer pos){
+    public void addNewPosting(String word, String sceneId, Long sceneNum, Integer DocId, Integer pos, String playId){
         ArrayList<Posting> temp = new ArrayList<>();
         Posting postObject = new Posting();
         ArrayList<Integer> posList = new ArrayList<>();
@@ -151,9 +153,12 @@ public class ExtractIndexTerms {
         /*Add a map from SceneId to DocId */
         sceneIdToDocMap.put(sceneId, DocId);
 
+        /* Add a map from DocId to SceneId$PlayId */
+        docToSceneIdPlayIdMap.put(DocId, genMetaData(sceneId,playId));
+
     }
 
-    public void updatePosting(String word, String sceneId, Long sceneNum, Integer DocId, Integer pos){
+    public void updatePosting(String word, String sceneId, Long sceneNum, Integer DocId, Integer pos, String playId){
         ArrayList<Posting> wordData = this.postings.get(word);
 
         boolean docIdFound = false;
@@ -177,6 +182,8 @@ public class ExtractIndexTerms {
             wordData.set(docIndex, updateRecord);
             this.postings.put(word, wordData);
 
+
+
         }
         else{
             /*Record for Document Id not present. Add new one. */
@@ -186,8 +193,24 @@ public class ExtractIndexTerms {
             /* Finally, add this to the postings */
             this.postings.put(word, wordData);
 
+            /* Add a map from DocId to SceneId */
+            docToSceneIdMap.put(DocId, sceneId);
+
+            /*Add a map from DocId to Scene Number */
+            docToSceneMap.put(DocId,sceneNum);
+
+            /*Add a map from SceneId to DocId */
+            sceneIdToDocMap.put(sceneId, DocId);
+
+            /* Add a map from DocId to SceneId$PlayId */
+            docToSceneIdPlayIdMap.put(DocId, genMetaData(sceneId,playId));
+
         }
 
+    }
+    private String genMetaData(String sceneId, String playId){
+        String identifier = "$";
+        return sceneId+identifier+playId;
     }
 
     private void writeMapsToDisk(){
@@ -201,6 +224,7 @@ public class ExtractIndexTerms {
             mapper.writeValue(new File(path+"playIdToDocMap.json"), playIdToDocMap);
             mapper.writeValue(new File(path+"docToTermsMap.json"), docToTermsMap);
             mapper.writeValue(new File(path+"docIdToLengthMap.json"), docIdToLengthMap);
+            mapper.writeValue(new File(path+"docToSceneIdPlayIdMap.json"), docToSceneIdPlayIdMap);
 
         }catch(IOException e){
             e.printStackTrace();
@@ -253,11 +277,11 @@ public class ExtractIndexTerms {
         ExtractIndexTerms.sceneIdToDocMap = sceneIdToDocMap;
     }
 
-    public static HashMap<String, String> getDocToSceneIdPlayIdMap() {
+    public static HashMap<Integer, String> getDocToSceneIdPlayIdMap() {
         return docToSceneIdPlayIdMap;
     }
 
-    public static void setDocToSceneIdPlayIdMap(HashMap<String, String> docToSceneIdPlayIdMap) {
+    public static void setDocToSceneIdPlayIdMap(HashMap<Integer, String> docToSceneIdPlayIdMap) {
         ExtractIndexTerms.docToSceneIdPlayIdMap = docToSceneIdPlayIdMap;
     }
 
