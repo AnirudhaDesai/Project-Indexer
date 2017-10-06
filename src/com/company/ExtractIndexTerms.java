@@ -17,6 +17,8 @@ public class ExtractIndexTerms {
     private static HashMap<String, String>  docToSceneIdPlayIdMap;
     private static HashMap<String, ArrayList<Integer>> playIdToDocMap;
     private static HashMap<Integer, Integer> docIdToLength;
+    private static HashMap<Integer, String[]> docToTermsMap;
+
     private float AverageLengthOfScenes;
     private PlayData ShortestScene;
     private String LongestPlay;
@@ -65,6 +67,7 @@ public class ExtractIndexTerms {
         this.docToSceneIdPlayIdMap = new HashMap<>();
         this.playIdToDocMap = new HashMap<>();
         this.docIdToLength = new HashMap<>();
+        this.docToTermsMap = new HashMap<>();
 
     }
 
@@ -85,7 +88,7 @@ public class ExtractIndexTerms {
             docIdListForPlay.add(documentId);
             String sceneText = obj.get(i).getText();
             String[] words = sceneText.split("\\s+");
-
+            this.docToTermsMap.put(documentId,words);
             TotalLengthOfScenes += words.length;   // For Average Scene Calculation
 
             this.docIdToLength.put(documentId,words.length);
@@ -196,6 +199,7 @@ public class ExtractIndexTerms {
             mapper.writeValue(new File(path+"docToSceneMap.json"), docToSceneMap);
             mapper.writeValue(new File(path+"sceneIdToDocMap.json"), sceneIdToDocMap);
             mapper.writeValue(new File(path+"playIdToDocMap.json"), playIdToDocMap);
+            mapper.writeValue(new File(path+"docToTermsMap.json"), docToTermsMap);
         }catch(IOException e){
             e.printStackTrace();
         }

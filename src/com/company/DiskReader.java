@@ -20,6 +20,7 @@ public class DiskReader {
     private static HashMap<Integer, String> RetrievedDocToSceneIdMap;
     private static HashMap<String, Integer> RetrievedSceneIdToDocMap;
     RandomAccessFile reader;
+    private boolean isCompressed;
 
     public DiskReader() {
         setPath("..//");
@@ -34,12 +35,26 @@ public class DiskReader {
             e.printStackTrace();
         }
 
-        readLookUpTable();
-
+//        readLookUpTable();
+        try{
+            readAllMapsFromDisk();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
+
+    public boolean isCompressed() {
+        return isCompressed;
+    }
+
+    public void setCompressed(boolean compressed) {
+        isCompressed = compressed;
+    }
+
     /* Overloaded Constructor to read if using Compressed Index */
     public DiskReader (boolean isCompressed) throws IOException {
         setPath("..//");
+        this.setCompressed(isCompressed);
         RetrievedLookUpTable = new HashMap<>();
         RetrievedInvList = new HashMap<>();
         if(!isCompressed) {
@@ -54,7 +69,12 @@ public class DiskReader {
 //            readCompressedInvListFromDisk();
         }
 
-        readLookUpTable();
+
+        try{
+            readAllMapsFromDisk();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     public void readInvListFromDisk() throws IOException{
@@ -107,7 +127,57 @@ public class DiskReader {
 
     }
 
+    public static HashMap<String, PostingListDisk> getRetrievedLookUpTable() {
+        return RetrievedLookUpTable;
+    }
 
+    public static void setRetrievedLookUpTable(HashMap<String, PostingListDisk> retrievedLookUpTable) {
+        RetrievedLookUpTable = retrievedLookUpTable;
+    }
+
+    public static HashMap<Integer, Long> getRetrievedDocToSceneMap() {
+        return RetrievedDocToSceneMap;
+    }
+
+    public static void setRetrievedDocToSceneMap(HashMap<Integer, Long> retrievedDocToSceneMap) {
+        RetrievedDocToSceneMap = retrievedDocToSceneMap;
+    }
+
+    public static HashMap<Integer, String> getRetrievedDocToSceneIdMap() {
+        return RetrievedDocToSceneIdMap;
+    }
+
+    public static void setRetrievedDocToSceneIdMap(HashMap<Integer, String> retrievedDocToSceneIdMap) {
+        RetrievedDocToSceneIdMap = retrievedDocToSceneIdMap;
+    }
+
+    public static HashMap<String, Integer> getRetrievedSceneIdToDocMap() {
+        return RetrievedSceneIdToDocMap;
+    }
+
+    public static void setRetrievedSceneIdToDocMap(HashMap<String, Integer> retrievedSceneIdToDocMap) {
+        RetrievedSceneIdToDocMap = retrievedSceneIdToDocMap;
+    }
+
+    public void readAllMapsFromDisk() throws IOException{
+        readLookUpTable(this.isCompressed());
+        ObjectMapper mapper = new ObjectMapper();
+
+            this.setRetrievedDocToSceneIdMap(mapper.readValue(new File(path + "docToSceneIdMap.json"),
+                    new TypeReference<HashMap<Integer, String>>() {
+                    }));
+            this.setRetrievedDocToSceneMap(mapper.readValue(new File(path + "docToSceneMap.json"),
+                    new TypeReference<HashMap<Integer, Long>>() {
+                    }));
+            this.setRetrievedSceneIdToDocMap(mapper.readValue(new File(path + "sceneIdToDocMap.json"),
+                    new TypeReference<HashMap<String, Integer>>() {
+                    }));
+//            this.setRe(mapper.readValue(new File(path + "docToTermsMap.json"),
+//                    new TypeReference<HashMap<Integer, String>>() {
+//                    }));
+
+
+    }
 
 
     public void readLookUpTable(){
@@ -154,27 +224,51 @@ public class DiskReader {
 
         PostingListDisk pObject = this.RetrievedLookUpTable.get(term);
         if(pObject == null){
-            System.err.println("Term Not found in File!");
+            System.err.println("Term  "+term+ " Not found in File!");
             System.exit(1);
         }
 
         byte[] byteList = new byte[pObject.getLen()];
         reader.seek(pObject.getOffset());
         reader.read(byteList,0,pObject.getLen());
-        IntBuffer buffer = ByteBuffer.wrap(byteList).asIntBuffer();
-            /* Write inverted List from buffer*/
-        while(buffer.hasRemaining()){
-            termInvertedList.add(buffer.get());
+        if(!this.isCompressed()) {
+            IntBuffer buffer = ByteBuffer.wrap(byteList).asIntBuffer();
+                /* Write inverted List from buffer*/
+            while (buffer.hasRemaining()) {
+                termInvertedList.add(buffer.get());
+            }
         }
+        else{
+            decode(byteList,termInvertedList);
+            deltaDecode(termInvertedList);
+
+        }
+
 
         return termInvertedList;
 
     }
 
+    private void deltaDecode(ArrayList<Integer> arr){
+        if(arr.size() == 0) return;
+        int i = 0;
+        int prevDocNum = 0;
+        while(i<arr.size()){
+            arr.set(i, arr.get(i++)+prevDocNum);
+            prevDocNum = arr.get(i-1);
+            int prevPosNum = 0;
+            for(int j = i;j<i+arr.get(i);j++) {
+                arr.set(j, arr.get(j++) + prevPosNum);
+                prevPosNum = arr.get(j-1);
+            }
+            i= i+arr.get(i)+1;
+        }
+    }
+
     public PostingListDisk getPostingListDiskObjectForTerm(String term) throws IOException {
         PostingListDisk pObject = this.RetrievedLookUpTable.get(term);
         if(pObject == null){
-            System.err.println("Term Not found in File!");
+            System.err.println("Term "+term+" Not found in File!");
             System.exit(1);
         }
 

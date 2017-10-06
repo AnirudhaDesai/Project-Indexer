@@ -112,20 +112,12 @@ private static HashMap<String, PostingListDisk> lookUpTable;  /*Maps index Terms
             }
 
             object.setTermFrequency(tf);
-//            System.out.println("The total tf for : "+word+ " is : "+tf + "df :" + df);
+
             object.setDocFrequency(df);
             object.setLen(byteLength);
             totalBytes += byteLength;
-//            System.out.println("Compressed Size: " + byteLength);
 
             lookUpTable.put(word, object);
-
-            /* Decode  */
-//            byte[] b = new byte[encodedPList.limit()];
-//            InvertedList.read(b,(int)object.getOffset(),encodedPList.limit());
-//            ArrayList<Integer> listI = new ArrayList<>();
-//            decode(b,listI);
-//            for(int def : listI) System.out.print(def);
 
         }
         System.out.println("Total Compressed : "+ totalBytes);
@@ -149,8 +141,6 @@ private static HashMap<String, PostingListDisk> lookUpTable;  /*Maps index Terms
         }
 
     }
-
-
 
     private void encode ( ArrayList<Integer> input, ByteBuffer output) {
         for (int i : input ) {

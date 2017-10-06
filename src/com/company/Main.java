@@ -16,13 +16,14 @@ public class Main {
 
         boolean isCompressed = false;
 
+
         if(args.length != 0 && (args[0].equals("c") || args[0].equals("C"))) {
             isCompressed = true;
             System.out.println("Running in Mode : Compressed");
         }
         else
             System.out.println("Running in Mode : Uncompressed");
-
+        String mode = isCompressed==false?"Uncompressed":"Compressed";
 
 	    /* Extract the gz file to json. This will be commented for now
 	     * since the extraction is already done */
@@ -44,7 +45,7 @@ public class Main {
         /* Create Inverted Index converting the ArrayList<Posting> into a single <String, ArrayList<Integer>>
         to write to file. This can be debated to as a redundant step. It is added for better clarity of results.
          */
-
+        long StartTime = System.currentTimeMillis();
         InvertedIndex invIndices = new InvertedIndex();
         if(!isCompressed)
             invIndices.createInvIndex(indexPostings.getPostings());
@@ -63,23 +64,21 @@ public class Main {
         }catch (IOException e){
             e.printStackTrace();
         }
+        long EndTime = System.currentTimeMillis();
+
+        System.out.println("The Time to write for mode : "+mode+" is : "+(EndTime-StartTime));
 
         /* All the maps, InvertedList are now written to disk */
-        /* Test Retrieval Code */
-//        try {
-//            /* At object instantiate, constructor, reads all maps,
-//            builds inverted list from file.
-//           */
-//            DiskReader diskReader = new DiskReader(isCompressed);
-//            System.out.println(diskReader.getRetrievedlookUpTable().size());
-//        }catch (IOException e){
-//            e.printStackTrace();
-//        }
 
         /* Evaluation */
-        Evaluation evaluation = new Evaluation();
+        long StartEvaluationTime = System.currentTimeMillis();
+        Evaluation evaluation = new Evaluation(isCompressed);
         evaluation.runEvaluation();
+        long EndEvaluationTime = System.currentTimeMillis();
 
+        System.out.println("The Time to evaluate for mode : "+mode+" is : "+(EndEvaluationTime-StartEvaluationTime));
+        System.out.println("The total Time for mode : "+mode+" is : "+
+                (EndEvaluationTime-StartEvaluationTime+EndEvaluationTime-StartTime));
 
     } /* End Of Main() */
 }
