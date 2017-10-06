@@ -113,4 +113,13 @@ public class RetrievalAPI {
         return (List)Arrays.asList(topK.toArray());
     }
 
+    public String getHighestScoringPhrase(String query) throws IOException{
+        if(query.length()==0) return null;
+        String[] terms = query.split("\\s+");
+        StringBuilder fullQuery = new StringBuilder();
+        for (String term : terms){
+            fullQuery.append(term+" "+diskReader.getHighestScoringTerm(term)+" ");
+        }
+        return fullQuery.toString().trim();
+    }
 }

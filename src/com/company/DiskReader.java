@@ -19,6 +19,7 @@ public class DiskReader {
     private static HashMap<Integer, Long> RetrievedDocToSceneMap;
     private static HashMap<Integer, String> RetrievedDocToSceneIdMap;
     private static HashMap<String, Integer> RetrievedSceneIdToDocMap;
+    private static HashMap<Integer, String[]> RetrievedDocToTermsMap;
     RandomAccessFile reader;
     private boolean isCompressed;
 
@@ -29,6 +30,7 @@ public class DiskReader {
         RetrievedDocToSceneIdMap = new HashMap<>();
         RetrievedDocToSceneMap = new HashMap<>();
         RetrievedSceneIdToDocMap = new HashMap<>();
+        RetrievedDocToTermsMap = new HashMap<>();
         try {
             reader = new RandomAccessFile(path + "InvertedList.dat", "r");
         }catch(IOException e){
@@ -57,6 +59,10 @@ public class DiskReader {
         this.setCompressed(isCompressed);
         RetrievedLookUpTable = new HashMap<>();
         RetrievedInvList = new HashMap<>();
+        RetrievedDocToSceneIdMap = new HashMap<>();
+        RetrievedDocToSceneMap = new HashMap<>();
+        RetrievedSceneIdToDocMap = new HashMap<>();
+        RetrievedDocToTermsMap = new HashMap<>();
         if(!isCompressed) {
             reader = new RandomAccessFile(path + "InvertedList.dat", "r");
             /* Build Inverted List from file - This is for Sanity Check only.*/
@@ -172,11 +178,9 @@ public class DiskReader {
             this.setRetrievedSceneIdToDocMap(mapper.readValue(new File(path + "sceneIdToDocMap.json"),
                     new TypeReference<HashMap<String, Integer>>() {
                     }));
-//            this.setRe(mapper.readValue(new File(path + "docToTermsMap.json"),
-//                    new TypeReference<HashMap<Integer, String>>() {
-//                    }));
-
-
+            RetrievedDocToTermsMap = (mapper.readValue(new File(path + "docToTermsMap.json"),
+                    new TypeReference<HashMap<Integer, String[]>>() {
+                    }));
     }
 
 
@@ -273,6 +277,76 @@ public class DiskReader {
         }
 
         return pObject;
+    }
+
+    public String getHighestScoringTerm(String term) throws IOException{
+        HashMap<String, Double> termToScoreMap = new HashMap<>();
+        String highTerm = null;
+        double maxScore = Integer.MIN_VALUE;
+        ArrayList<Integer> invList = getInvertedListForTerm(term);
+        int i = 0;
+        while(i<invList.size()){
+            int docNum = invList.get(i++);
+            for(int j = i+1;j<=i+invList.get(i);j++){   //For every position in the document
+                String[] docTerms = RetrievedDocToTermsMap.get(docNum);
+                String prevTerm, nextTerm;
+                int termPos = invList.get(j);
+                if(termPos!=0){
+                    prevTerm = docTerms[termPos-1];
+                    if(!termToScoreMap.containsKey(prevTerm)){
+                        termToScoreMap.put(prevTerm, getDiceCoeffScore(term,prevTerm,invList));
+                    }
+                }
+                if(termPos!=docTerms.length-1){
+                    nextTerm = docTerms[termPos+1];
+                    if(!termToScoreMap.containsKey(nextTerm)){
+                        termToScoreMap.put(nextTerm,getDiceCoeffScore(term,nextTerm,invList));
+                    }
+                }
+
+            }
+            i = i+invList.get(i)+1;  // move to next Document
+
+        }
+
+        // Return the term with highest score
+        for(HashMap.Entry<String,Double> pair : termToScoreMap.entrySet()){
+            if(maxScore<pair.getValue()){
+                highTerm = pair.getKey();
+                maxScore = pair.getValue();
+            }
+        }
+        return highTerm;
+    }
+
+    public double getDiceCoeffScore(String term1, String term2, ArrayList<Integer> invList){
+        double score = 0;
+        int i = 0;
+        int numWindows = 0, term1Count=0, term2Count;
+        while(i<invList.size()){
+            int docNum = invList.get(i++);
+            for(int j = i+1;j<=i+invList.get(i);j++){
+                int termPos = invList.get(j);
+                String[] docTerms = RetrievedDocToTermsMap.get(docNum);
+                if(termPos != 0 && docTerms[termPos-1].equals(term2)) numWindows++;
+                if(termPos != docTerms.length-1 && docTerms[termPos+1].equals(term2)) numWindows++;
+
+                if(termPos!=0 && termPos!=docTerms.length-1) term1Count += 2;
+                else term1Count += 1;   //Edge Case. Add 1
+            }
+            i = i+invList.get(i)+1;  // move to next Document
+        }
+        try {
+            /* Using approx. value for term2 only. Given the huge database, this should not affect much. */
+            term2Count = getPostingListDiskObjectForTerm(term2).getTermFrequency() * 2;
+
+            score = (double) numWindows/(double)(term1Count+term2Count);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        System.out.println("Score for terms :"+term1+","+term2+" is : "+score);
+
+        return score;
     }
 
     public String getPath() {

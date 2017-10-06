@@ -75,9 +75,11 @@ public class Evaluation {
 
             }
             oneWordQueries.writeUTF(query.toString() + "\n");
-
+            String twoWordQuery = this.retrievalAPI.getHighestScoringPhrase(query.toString());
+            twoWordQueries.writeUTF(twoWordQuery+"\n");
         }
         oneWordQueries.close();
+        twoWordQueries.close();
     }
 
     public  void printResults(ArrayList<PlayData> results){
