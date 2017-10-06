@@ -20,6 +20,7 @@ public class DiskReader {
     private static HashMap<Integer, String> RetrievedDocToSceneIdMap;
     private static HashMap<String, Integer> RetrievedSceneIdToDocMap;
     private static HashMap<Integer, String[]> RetrievedDocToTermsMap;
+    private static HashMap<Integer, Integer> RetrievedDocToLengthMap;
     RandomAccessFile reader;
     private boolean isCompressed;
 
@@ -90,7 +91,7 @@ public class DiskReader {
             ArrayList<Integer> termInvertedList = new ArrayList<>();
             String term = pair.getKey();
             PostingListDisk pObject = pair.getValue();
-//            reader.seek(pObject.getOffset());
+
             byte[] byteList = new byte[pObject.getLen()];
             reader.seek(pObject.getOffset());
             reader.read(byteList,0,pObject.getLen());
@@ -117,7 +118,7 @@ public class DiskReader {
             String term = pair.getKey();
             PostingListDisk pObject = new PostingListDisk();
             pObject = (PostingListDisk) pair.getValue();
-//            reader.seek(pObject.getOffset());
+
             byte[] byteList = new byte[pObject.getLen()];
             reader.seek(pObject.getOffset());
             reader.read(byteList,0,pObject.getLen());
@@ -169,18 +170,21 @@ public class DiskReader {
         readLookUpTable(this.isCompressed());
         ObjectMapper mapper = new ObjectMapper();
 
-            this.setRetrievedDocToSceneIdMap(mapper.readValue(new File(path + "docToSceneIdMap.json"),
+            RetrievedDocToSceneIdMap = (mapper.readValue(new File(path + "docToSceneIdMap.json"),
                     new TypeReference<HashMap<Integer, String>>() {
                     }));
-            this.setRetrievedDocToSceneMap(mapper.readValue(new File(path + "docToSceneMap.json"),
+            RetrievedDocToSceneMap = (mapper.readValue(new File(path + "docToSceneMap.json"),
                     new TypeReference<HashMap<Integer, Long>>() {
                     }));
-            this.setRetrievedSceneIdToDocMap(mapper.readValue(new File(path + "sceneIdToDocMap.json"),
+            RetrievedSceneIdToDocMap = (mapper.readValue(new File(path + "sceneIdToDocMap.json"),
                     new TypeReference<HashMap<String, Integer>>() {
                     }));
             RetrievedDocToTermsMap = (mapper.readValue(new File(path + "docToTermsMap.json"),
                     new TypeReference<HashMap<Integer, String[]>>() {
                     }));
+            RetrievedDocToLengthMap = (mapper.readValue(new File(path + "docIdToLengthMap.json"),
+                new TypeReference<HashMap<Integer, Integer>>() {
+                }));
     }
 
 
@@ -344,7 +348,7 @@ public class DiskReader {
         }catch (IOException e){
             e.printStackTrace();
         }
-        System.out.println("Score for terms :"+term1+","+term2+" is : "+score);
+//        System.out.println("Score for terms :"+term1+","+term2+" is : "+score);
 
         return score;
     }

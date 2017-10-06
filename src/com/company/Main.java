@@ -15,6 +15,7 @@ public class Main {
          */
 
         boolean isCompressed = false;
+        int numOfResults = 5;    // Default number of retrieved documents
 
 
         if(args.length != 0 && (args[0].equals("c") || args[0].equals("C"))) {
@@ -24,6 +25,11 @@ public class Main {
         else
             System.out.println("Running in Mode : Uncompressed");
         String mode = isCompressed==false?"Uncompressed":"Compressed";
+
+        if(args.length==2) {
+            numOfResults = Integer.parseInt(args[1]);
+            if(numOfResults <= 0) numOfResults = 5;
+        }
 
 	    /* Extract the gz file to json. This will be commented for now
 	     * since the extraction is already done */
@@ -72,7 +78,7 @@ public class Main {
 
         /* Evaluation */
         long StartEvaluationTime = System.currentTimeMillis();
-        Evaluation evaluation = new Evaluation(isCompressed);
+        Evaluation evaluation = new Evaluation(isCompressed, numOfResults);
         evaluation.runEvaluation();
         long EndEvaluationTime = System.currentTimeMillis();
 

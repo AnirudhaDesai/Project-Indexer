@@ -44,7 +44,7 @@ public class RetrievalAPI {
         for(HashMap.Entry<String, PostingListDisk> pair : diskReader.getRetrievedlookUpTable().entrySet()){
             this.vocabulary.add(pair.getKey());
         }
-        System.out.println("The vocabulary of size : "+this.vocabulary.size()+ " is : ");
+        System.out.println("Vocabulary size : "+this.vocabulary.size());
 
     }
 
@@ -57,8 +57,7 @@ public class RetrievalAPI {
             freqObject.setTermFrequency(diskReader.getPostingListDiskObjectForTerm(word).getTermFrequency());
             freqObject.setDocFrequency(diskReader.getPostingListDiskObjectForTerm(word).getDocFrequency());
             result.add(freqObject);
-//            System.out.printf("The term frequency, DocFrequency for %s is : %d,%d \n",word,
-//                    freqObject.getTermFrequency(),freqObject.getDocFrequency());
+
         }
 
     }

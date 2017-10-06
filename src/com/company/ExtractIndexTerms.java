@@ -16,7 +16,7 @@ public class ExtractIndexTerms {
     private static HashMap<String, Integer> sceneIdToDocMap;
     private static HashMap<String, String>  docToSceneIdPlayIdMap;
     private static HashMap<String, ArrayList<Integer>> playIdToDocMap;
-    private static HashMap<Integer, Integer> docIdToLength;
+    private static HashMap<Integer, Integer> docIdToLengthMap;
     private static HashMap<Integer, String[]> docToTermsMap;
 
     private float AverageLengthOfScenes;
@@ -60,18 +60,18 @@ public class ExtractIndexTerms {
     private static Integer documentId;
 
     public ExtractIndexTerms() {
-        this.postings = new HashMap<>();
-        this.docToSceneMap = new HashMap<>();
-        this.docToSceneIdMap = new HashMap<>();
-        this.sceneIdToDocMap = new HashMap<>();
-        this.docToSceneIdPlayIdMap = new HashMap<>();
-        this.playIdToDocMap = new HashMap<>();
-        this.docIdToLength = new HashMap<>();
-        this.docToTermsMap = new HashMap<>();
+        postings = new HashMap<>();
+        docToSceneMap = new HashMap<>();
+        docToSceneIdMap = new HashMap<>();
+        sceneIdToDocMap = new HashMap<>();
+        docToSceneIdPlayIdMap = new HashMap<>();
+        playIdToDocMap = new HashMap<>();
+        docIdToLengthMap = new HashMap<>();
+        docToTermsMap = new HashMap<>();
 
     }
 
-    public void extractTerms(ArrayList<PlayData> obj){
+    protected void extractTerms(ArrayList<PlayData> obj){
         ArrayList<String>  docTerms = new ArrayList<>();
         ArrayList<Integer> docIdListForPlay = new ArrayList<>();
         int TotalLengthOfScenes = 0;   //To calculate Average Length of scenes
@@ -88,10 +88,10 @@ public class ExtractIndexTerms {
             docIdListForPlay.add(documentId);
             String sceneText = obj.get(i).getText();
             String[] words = sceneText.split("\\s+");
-            this.docToTermsMap.put(documentId,words);
+            docToTermsMap.put(documentId,words);
             TotalLengthOfScenes += words.length;   // For Average Scene Calculation
 
-            this.docIdToLength.put(documentId,words.length);
+            docIdToLengthMap.put(documentId,words.length);
 
             /* Shortest Scene  */
             if(minSceneLength > words.length){
@@ -101,7 +101,7 @@ public class ExtractIndexTerms {
 
 //            System.out.println(words.length);
             for(int j = 0; j<words.length; j++){
-                if(!this.postings.containsKey(words[j])){
+                if(!postings.containsKey(words[j])){
                     addNewPosting(words[j], obj.get(i).getSceneId(), obj.get(i).getSceneNum(), documentId, j);
                 }
                 else{
@@ -200,6 +200,8 @@ public class ExtractIndexTerms {
             mapper.writeValue(new File(path+"sceneIdToDocMap.json"), sceneIdToDocMap);
             mapper.writeValue(new File(path+"playIdToDocMap.json"), playIdToDocMap);
             mapper.writeValue(new File(path+"docToTermsMap.json"), docToTermsMap);
+            mapper.writeValue(new File(path+"docIdToLengthMap.json"), docIdToLengthMap);
+
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -213,7 +215,7 @@ public class ExtractIndexTerms {
             String playId = PlayToDoc.getKey();
             ArrayList<Integer> docList = PlayToDoc.getValue();
             for(Integer docId : docList)
-                playLength += this.docIdToLength.get(docId);
+                playLength += this.docIdToLengthMap.get(docId);
             if(minPlayLength>playLength){
                 this.setShortestPlay(playId);
                 minPlayLength = playLength;
@@ -231,7 +233,7 @@ public class ExtractIndexTerms {
     }
 
 
-    public static HashMap<String, ArrayList<Posting>> getPostings() {
+    protected static HashMap<String, ArrayList<Posting>> getPostings() {
         return postings;
     }
 
